@@ -1,0 +1,14 @@
+traindir = './TRAIN';
+testdir = './TEST';
+
+dirs = dir(traindir);
+for i = 1:length(dirs)
+    if dirs(i).isdir && ~startsWith(dirs(i).name, '.')
+        disp(['Directorio: ' dirs(i).name]);
+
+        files = dir(fullfile(traindir, dirs(i).name, '*'));
+        for j = 1:length(files)
+            
+        end
+    end
+end
