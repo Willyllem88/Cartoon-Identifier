@@ -1,19 +1,38 @@
-% Limpiar el espacio de trabajo
+% clasifier.m
 clear; clc; close all;
 
 traindir = './TRAIN';
-testdir = './TEST';
-
 dirs = dir(traindir);
+
+% struct array vacío
+rows = struct('MedR', {}, 'MedG', {}, 'MedB', {}, 'Label', {});
+
 for i = 1:length(dirs)
-    if startsWith(dirs(i).name, '.')
-        continue;
-    end
+    name = dirs(i).name;
 
-    disp(['Directorio: ' dirs(i).name]);
+    if startsWith(name, '.'); continue; end
 
-    files = dir(fullfile(traindir, dirs(i).name, '*'));
+    files = dir(fullfile(traindir, name, '*.jpg'));
     for j = 1:length(files)
-            
+        imgPath = fullfile(files(j).folder, files(j).name);
+        rows(end+1) = makeRow(imgPath, name);  %#ok<SAGROW>
     end
+end
+
+T = struct2table(rows);
+disp(T(1:5,:))
+
+
+%% función local al final del script
+function row = makeRow(imgPath, label)
+    I = imread(imgPath);
+    medR = median(I(:,:,1), 'all');
+    medG = median(I(:,:,2), 'all');
+    medB = median(I(:,:,3), 'all');
+    row = struct(...
+      'MedR', medR, ...
+      'MedG', medG, ...
+      'MedB', medB, ...
+      'Label', string(label) ...
+    );
 end
