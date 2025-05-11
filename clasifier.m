@@ -6,8 +6,9 @@ testdir = './TEST';
 traindirs = dir(traindir);
 testdirs = dir(testdir);
 
+
 %% TRAIN table creation
-rows = struct('meanS', {}, 'sdS', {}, 'histogram', {}, 'edgeDensity', {}, 'Label', {});
+rows = struct('meanS', {}, 'sdS', {}, 'meanV', {}, 'sdV', {}, 'histogram', {}, 'edgeDensity', {}, 'Label', {});
 for i = 1:length(traindirs)
     name = traindirs(i).name;
 
@@ -28,7 +29,7 @@ end
 T = struct2table(rows);
 
 %% TEST table creation
-rows = struct('meanS', {}, 'sdS', {}, 'histogram', {}, 'edgeDensity', {}, 'Label', {});
+rows = struct('meanS', {}, 'sdS', {}, 'meanV', {}, 'sdV', {}, 'histogram', {}, 'edgeDensity', {}, 'Label', {});
 for i = 1:length(testdirs)
     name = testdirs(i).name;
 
