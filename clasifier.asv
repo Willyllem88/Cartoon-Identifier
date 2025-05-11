@@ -2,37 +2,30 @@
 clear; clc; close all;
 
 traindir = './TRAIN';
+testdir = './TEST';
 dirs = dir(traindir);
 
 % struct array vacío
-rows = struct('MedR', {}, 'MedG', {}, 'MedB', {}, 'Label', {});
+rows = struct('meanS', {}, 'sdS', {}, 'histogram', {}, 'edgeDensity', {}, 'Label', {});
 
 for i = 1:length(dirs)
     name = dirs(i).name;
 
-    if 
+    if startsWith(name, '.'); continue; end
 
     files = dir(fullfile(traindir, name, '*.jpg'));
     for j = 1:length(files)
         imgPath = fullfile(files(j).folder, files(j).name);
-        rows(end+1) = makeRow(imgPath, name);  %#ok<SAGROW>
+
+        I = imread(imgPath);
+
+        row = extreureCaracteristiques(I);
+        row.Label = string(name);
+
+        rows(end+1) = row;
     end
 end
-
 T = struct2table(rows);
-disp(T(1:5,:))
 
+dirs = 
 
-%% función local al final del script
-function row = makeRow(imgPath, label)
-    I = imread(imgPath);
-    medR = median(I(:,:,1), 'all');
-    medG = median(I(:,:,2), 'all');
-    medB = median(I(:,:,3), 'all');
-    row = struct(...
-      'MedR', medR, ...
-      'MedG', medG, ...
-      'MedB', medB, ...
-      'Label', string(label) ...
-    );
-end
