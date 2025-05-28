@@ -4,7 +4,7 @@ function row = extreureCaracteristiques(I)
 
     I = imresize(I, [IMAGE_SIZE, IMAGE_SIZE]);
     Ihsv = rgb2hsv(I);
-    
+
     meanS = mean(Ihsv(:,:,2), 'all');
     sdS = std(Ihsv(:,:,2), 0, 'all');
     meanV = mean(Ihsv(:,:,3), 'all');
@@ -12,14 +12,16 @@ function row = extreureCaracteristiques(I)
     hist = getHistogram(I);
     edgeDensity = getEdgeDensity(I);
 
-    row = struct(...
-      'meanS', meanS, ...
-      'sdS', sdS, ...
-      'meanV', meanV, ...
-      'sdV', sdV, ...
-      'histogram', hist, ...
-      'edgeDensity', edgeDensity ...
-    );
+    % Construir un struct plano con todos los campos, sin anidar histogram
+    row = struct();
+    row.meanS = meanS;
+    row.sdS = sdS;
+    row.meanV = meanV;
+    row.sdV = sdV;
+    for k = 1:numel(hist)
+        row.(sprintf('hist%d', k)) = hist(k);
+    end
+    row.edgeDensity = edgeDensity;
 end
 
 %% función para obtener el histograma de la imagen
