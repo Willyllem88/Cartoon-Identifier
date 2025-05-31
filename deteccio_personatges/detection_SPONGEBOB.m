@@ -10,7 +10,7 @@ function detection_SPONGEBOB()
     imageFile = fullfile(path, file);
 
     % --- Load model ---
-    m = load('trainedModel_SPONGEBOB.mat');
+    m = load('untitled.mat');
     if isfield(m, 'trainedModel')
         modelStruct = m.trainedModel;
     else
@@ -38,15 +38,24 @@ function detection_SPONGEBOB()
         for x = 1:step:(wI - windowSize(2))
             rect = [x, y, windowSize(2), windowSize(1)];
             patch = imcrop(I, rect);
-            %figure, imshow(patch), title("patch");
+            figure, imshow(patch), title("patch");
 
             featVec = extractFeatures_SPONGEBOB(patch, binCount, windowSize);
             T = array2table(featVec, 'VariableNames', varNames);
 
-            label = predictFcn(T);
+            [label,score]= predictFcn(T);
+            posScore = score(2);
             if string(label) == "true"
-                figure, imshow(patch), title('patch where spongebob')
-                fprintf('is spongebob!\n');
+                %figure, imshow(patch), title('patch where spongebob')
+                %fprintf('is spongebob!\n');
+
+                % Display the patch where SpongeBob was found:
+                figure; imshow(patch);
+                title(sprintf('Patch with SpongeBob (score = %.3f)', posScore));
+
+                % Print to Command Window:
+                fprintf('SpongeBob found at window starting [x=%d, y=%d]\n', x, y);
+                fprintf('Positive‐class score = %.3f\n', posScore)
                 return
             end
             %if string(label) == "true"

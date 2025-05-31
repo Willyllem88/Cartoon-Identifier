@@ -40,6 +40,6 @@ for i = 1:numNeg
 end
 
 %% --- Save features and labels ---
-outputFile = fullfile('deteccio_personatges', 'spongebob_features.mat');
+outputFile = fullfile('./', 'spongebob_features.mat');
 save(outputFile, 'features', 'labels');
 fprintf('Extracted %d feature vectors (%d pos, %d neg) and saved to %s.\n', total, numPos, numNeg, outputFile);

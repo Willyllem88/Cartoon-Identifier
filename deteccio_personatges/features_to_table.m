@@ -15,4 +15,4 @@ T = array2table(features, 'VariableNames', varNames);
 T.IsSpongeBob = categorical(labels);  % add the response variable
 
 % Inspect
-head(T)
+head(T);
