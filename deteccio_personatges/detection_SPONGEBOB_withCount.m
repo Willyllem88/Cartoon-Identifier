@@ -1,75 +1,87 @@
-function detection_SPONGEBOB()
-%DETECTION_SPONGEBOB  Slide a window over an input image and count SpongeBob patches.
+function isThereCharacter = SpongeBodetection_SPONGEBOB(imageFile, sampleRate,threshold,doResize)
+%SPONGEBODETECTION_SPONGEBOB  Slide a window over an input image and detect SpongeBob.
 %
-%   This function:
-%     1) Prompts the user to select an image file (.jpg or .png).
-%     2) Loads a trained model (exported from Classification Learner) 
-%        stored in 'untitled.mat' (must contain a variable 'trainedModel').
-%     3) Slides a 128×128 window (stride 16) over the image.
-%     4) For each window, extracts the enhanced feature vector via 
-%        extractFeatures_SPONGEBOB(patch, binCount, windowSize).
-%     5) Converts that feature vector to a table row with column names taken
-%        from modelStruct.RequiredVariables.
-%     6) Calls predictFcn(T) to obtain [label, score].
-%     7) If label=='true' and score(2) ≥ 1, increments a counter and displays
-%        the patch (with its score) in a figure.
-%     8) At the end, prints the total number of SpongeBob patches found.
+%   isThereCharacter = SpongeBodetection_SPONGEBOB(imageFile, sampleRate)
+%   loads a trained model ('trainedModel_FineTree.mat'), then slides a 128×128
+%   window (stride 16) over the image.  Rather than examining every window,
+%   it only processes each window with probability sampleRate (0 < sampleRate ≤ 1).
+%   For each sampled window, it extracts features, calls the classifier, and
+%   counts positive detections.  Returns 1 if at least one positive patch was found,
+%   otherwise 0.
+%
+%   INPUTS:
+%     imageFile  - full path to the test image.
+%     sampleRate - fraction of windows to actually evaluate (e.g., 0.2 for 20%).
+%                  If omitted, defaults to 1 (i.e., examine every window).
+%
+%   EXAMPLE:
+%     isChar = SpongeBodetection_SPONGEBOB('test.jpg', 0.5);  % 50% of windows
 
-    %% --- 1. Load image via uigetfile ---
-    [file, path] = uigetfile({'*.jpg;*.png','Images (*.jpg,*.png)'}, 'Selecciona una imagen');
-    if isequal(file,0)
-        disp('No se seleccionó ningún archivo.');
-        return;
+%NOTA: per fer que vagi mes rapid. fer resize, tot mateixa mida
+
+    if nargin < 2
+        sampleRate = 1;  % examine all windows by default
     end
-    imageFile = fullfile(path, file);
+    assert(sampleRate > 0 && sampleRate <= 1, 'sampleRate must be in (0,1].');
 
-    %% --- 2. Load the trained model ---
+    %% --- 1. Load the trained model ---
     data = load('trainedModel_FineTree.mat');
     if ~isfield(data, 'trainedModel')
-        error('The model file "untitled.mat" must contain a variable named ''trainedModel''.');
+        error('The model file must contain a variable named ''trainedModel''.');
     end
     modelStruct = data.trainedModel;
     predictFcn   = modelStruct.predictFcn;
     varNames     = modelStruct.RequiredVariables;  % cell array of column names
-    % We assume the positive class label was "true" during training.
-    posClass     = "true";
+    posClass     = "true";  % assume positive label is "true"
 
-    %% --- 3. Parameters (must match training) ---
+    %% --- 2. Parameters (must match training) ---
     windowSize = [128 128];   % [height, width]
-    binCount   = 32;          % number of bins for H, S, and V histograms in extractFeatures_SPONGEBOB
+    binCount   = 32;          % number of bins for HSV histograms
     step       = 16;          % sliding window stride
 
-    %% --- 4. Read image and get dimensions ---
+    %% --- 3. Read image and get dimensions ---
     I = imread(imageFile);
     [hI, wI, ~] = size(I);
 
-    %% --- 5. Sliding window detection ---
+    %% --- 4. Sliding window with sampling ---
     count = 0;
     for y = 1:step:(hI - windowSize(1))
         for x = 1:step:(wI - windowSize(2))
+            if rand() > sampleRate
+                continue;  % skip this window
+            end
+
             rect  = [x, y, windowSize(2), windowSize(1)];
             patch = imcrop(I, rect);
 
-            % 5.1 Extract features for this patch
+            % 4.1 Extract features for this patch
             featVec = extractFeatures_SPONGEBOB(patch, binCount, windowSize);
 
-            % 5.2 Build a one-row table with the required column names
+            % 4.2 Build a one-row table with required column names
             T = array2table(featVec, 'VariableNames', varNames);
 
-            % 5.3 Predict label and score
+            % 4.3 Predict label and score
             [label, score] = predictFcn(T);
-            posScore = score(2);  % positive-class score
+            posScore = score(2);
 
-            % 5.4 If predicted label is 'true' and score ≥ 1, count & display
+            % 4.4 If predicted label is positive, increment count
             if string(label) == posClass
                 count = count + 1;
-                figure;
-                imshow(patch);
-                title(sprintf('Patch with SpongeBob (score = %.3f)', posScore));
+            end
+            if count > 0 && count > threshold
+                fprintf('SpongeBob found!  Count: >%d (sampleRate = %.2f)\n', count, sampleRate);
+                isThereCharacter = 1;
+                return
             end
         end
     end
 
-    %% --- 6. Print total count ---
-    fprintf('Number of SpongeBob patches found: %d\n', count);
+    %% --- 5. Return result and print count ---
+    if count > 0 && count > threshold
+        fprintf('SpongeBob found!  Count: %d (sampleRate = %.2f)\n', count, sampleRate);
+        isThereCharacter = 1;
+    else
+        fprintf('SpongeBob found not!  Count: %d (sampleRate = %.2f)\n', count, sampleRate);
+        isThereCharacter = 0;
+    end
 end
