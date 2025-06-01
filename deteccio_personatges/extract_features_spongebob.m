@@ -1,23 +1,24 @@
-% extractFeatures_SPONGEBOB.m
-% Enhanced feature extraction for SpongeBob detection, including:
-%   • Color moments (mean & std of H, S, V)
-%   • Separate normalized histograms for H, S, and V channels
-%   • Edge density (Canny)
-%   • Local Binary Pattern (LBP) histogram (59-bin "uniform" patterns)
+%extract_features_spongebob.m
+% Treu les featuers d'un patch de spongbob (o sigui, no una imatge
+% ajustada, bounding box, del spongebob, sino un patch o tros del
+% spongebob, com la pell, o els ulls, etc).
+% Els descriptors que s'utiltizen son:
+% 1) mitjana i std de H,S,V respectivament 
+% 2) histogrames normalitzats per cada canal H,S,v respectivament
+% 3) densitat de edges (amb canny)
+% 4) LBP (local binary pattern) per textures, es un histograma amb 59 bins
 
-function vec = extractFeatures_SPONGEBOB(I, binCount, windowSize)
-    % Resize to consistent window size
+function vec = extract_features_spongebob(I, binCount, windowSize)
+    % fem resize a 128x128 (no faria falta, els patches ja son de 128x128)
     I = imresize(I, windowSize);
 
-    % Convert to HSV
+    % obtenim hsv
     Ihsv = rgb2hsv(I);
     H = Ihsv(:,:,1);
     S = Ihsv(:,:,2);
     V = Ihsv(:,:,3);
 
-    % ---------------------------------------------------------------------
-    % 1) Color moments (mean & std) for H, S, V
-    % ---------------------------------------------------------------------
+    % obtenim mesures hsv
     meanH = mean(H, 'all');
     sdH   = std(H, 0, 'all');
     meanS = mean(S, 'all');
@@ -25,31 +26,20 @@ function vec = extractFeatures_SPONGEBOB(I, binCount, windowSize)
     meanV = mean(V, 'all');
     sdV   = std(V, 0, 'all');
 
-    % ---------------------------------------------------------------------
-    % 2) Normalized histograms for H, S, V (each with binCount bins)
-    % ---------------------------------------------------------------------
+    % obtenim histogrames hsv
     histH = histcounts(H, binCount, 'Normalization', 'probability');
     histS = histcounts(S, binCount, 'Normalization', 'probability');
     histV = histcounts(V, binCount, 'Normalization', 'probability');
 
-    % ---------------------------------------------------------------------
-    % 3) Edge density via Canny on grayscale
-    % ---------------------------------------------------------------------
+    % obtenim edge density
     grayI = rgb2gray(I);
     edges = edge(grayI, 'Canny');
     edgeDensity = sum(edges, 'all') / numel(edges);
 
-    % ---------------------------------------------------------------------
-    % 4) Local Binary Pattern (LBP) histogram
-    %    Uses default 'Uniform' LBP with radius=1, neighbors=8, producing 59 bins
-    % ---------------------------------------------------------------------
-    % Make sure you have the Computer Vision Toolbox for extractLBPFeatures
+    % obtenim LBP
     lbpFeatures = extractLBPFeatures(grayI, 'Upright', false, 'Normalization', 'None');
-    % extractLBPFeatures returns a 1×59 feature vector for 'Uniform' patterns
-
-    % ---------------------------------------------------------------------
-    % 5) Combine all features into a single row vector
-    % ---------------------------------------------------------------------
+    
+    % posem totes les features de l'imatge en un vector
     vec = [ ...
         meanH, sdH, ...
         meanS, sdS, ...

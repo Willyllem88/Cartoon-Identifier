@@ -1,22 +1,14 @@
-% evaluate_detection.m
-% Script to evaluate SpongeBob detection on "positives" and "negatives" folders.
-%
-% The user selects a parent directory that contains two subfolders:
-%   • "positives" – images where SpongeBob appears
-%   • "negatives" – images where SpongeBob does not appear
-%
-% For each image, the script calls
-%   result = detection_SPONGEBOB_withCount(imageFile);
-% which should return 1 (true) if SpongeBob is detected, or 0 (false) otherwise.
-%
-% The script then computes overall accuracy and displays a confusion matrix.
+% test_folder_spongebob.m
+% Script que demana a l'usuari una carpeta d'entrada, amb subfolders 
+% "positives" i "negatives" (amb imatges on apareix o no el spongebob
+%  respectivament), i itera sobre totes les imatges, aplica la prediccio.
+%  per cada foto es guarda si es correcte, o fals positiu o fals negatiu, i
+%  finalment s'ensenya a la terminal la matriu de confussio.
 
-%NOTA: per fer que vagi mes rapid. fer resize, tot mateixa mida
-
-%% --- Prompt user for parent folder ---
+%% demanar a l'usuari la carpeta
 parentFolder = uigetdir(pwd, 'Select the folder containing "positives" and "negatives"');
 if isequal(parentFolder, 0)
-    disp('No folder selected. Exiting.');
+    disp('No folder selected');
     return;
 end
 
@@ -25,7 +17,7 @@ sampleRate = 0.15;
 fprintf('Sample rate used to select windows (percentage of 128x128 windows tested): %d\n', sampleRate)
 fprintf('Minimum number of windows with spongebob occurance to tell if spongebob is: %d\n', threshold)
 
-%% --- Define positive and negative subfolders ---
+%% definim positives i negatives subfolders
 posFolder = fullfile(parentFolder, 'positives');
 negFolder = fullfile(parentFolder, 'negatives');
 
@@ -33,8 +25,6 @@ if ~isfolder(posFolder) || ~isfolder(negFolder)
     error('Selected folder must contain subfolders named "positives" and "negatives".');
 end
 
-%% --- Gather positive and negative image file lists ---
-% Accept common image extensions
 posJPG = dir(fullfile(posFolder, '*.jpg'));
 posPNG = dir(fullfile(posFolder, '*.png'));
 posFiles = [posJPG; posPNG];
@@ -49,13 +39,13 @@ if numPos == 0 && numNeg == 0
     error('No .jpg or .png files found in either "positives" or "negatives" folders.');
 end
 
-%% --- Initialize confusion counts ---
-TP = 0;  % True Positives   (positive image, detected = 1)
-FN = 0;  % False Negatives  (positive image, detected = 0)
-FP = 0;  % False Positives  (negative image, detected = 1)
-TN = 0;  % True Negatives   (negative image, detected = 0)
+%% inicialitzar contadors
+TP = 0;  % true positives
+FN = 0;  % false negatives
+FP = 0;  % false positives
+TN = 0;  % true negatives
 
-%% --- Process positive images ---
+%% processar imatges positives
 fprintf('=== Starting test of positives folder ===\n')
 for i = 1:numPos
     imageFile = fullfile(posFolder, posFiles(i).name);
@@ -72,7 +62,7 @@ for i = 1:numPos
     end
 end
 
-%% --- Process negative images ---
+%% processar imatges negatives
 fprintf('=== Starting test of negatives folder ===\n')
 for i = 1:numNeg
     imageFile = fullfile(negFolder, negFiles(i).name);
@@ -89,11 +79,11 @@ for i = 1:numNeg
     end
 end
 
-%% --- Compute accuracy ---
+%% calcular accuracy
 totalImages = TP + TN + FP + FN;
 accuracy = (TP + TN) / totalImages * 100;
 
-%% --- Display results ---
+%% mostrar resultats (accuracy i confusion matrix)
 fprintf('\nEvaluation Results:\n');
 fprintf('  True Positives  (TP): %d\n', TP);
 fprintf('  False Negatives (FN): %d\n', FN);
@@ -102,9 +92,8 @@ fprintf('  True Negatives  (TN): %d\n', TN);
 fprintf('  Total images       : %d\n', totalImages);
 fprintf('  Accuracy           : %.2f%%\n', accuracy);
 
-% Construct and display confusion matrix
-confMat = [TP, FN;  % actual positive:   [predicted positive, predicted negative]
-           FP, TN]; % actual negative:   [predicted positive, predicted negative]
+confMat = [TP, FN;
+           FP, TN];
 disp('Confusion Matrix (rows=actual [Positive; Negative], columns=predicted [Positive, Negative]):');
 disp(array2table(confMat, ...
     'VariableNames', {'Pred_Pos', 'Pred_Neg'}, ...

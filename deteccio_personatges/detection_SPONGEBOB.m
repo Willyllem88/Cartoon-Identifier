@@ -1,30 +1,21 @@
-function isThereCharacter = SpongeBodetection_SPONGEBOB(imageFile, sampleRate,threshold)
-%SPONGEBODETECTION_SPONGEBOB  Slide a window over an input image and detect SpongeBob.
-%
-%   isThereCharacter = SpongeBodetection_SPONGEBOB(imageFile, sampleRate)
-%   loads a trained model ('trainedModel_FineTree.mat'), then slides a 128×128
-%   window (stride 16) over the image.  Rather than examining every window,
-%   it only processes each window with probability sampleRate (0 < sampleRate ≤ 1).
-%   For each sampled window, it extracts features, calls the classifier, and
-%   counts positive detections.  Returns 1 if at least one positive patch was found,
-%   otherwise 0.
-%
-%   INPUTS:
-%     imageFile  - full path to the test image.
-%     sampleRate - fraction of windows to actually evaluate (e.g., 0.2 for 20%).
-%                  If omitted, defaults to 1 (i.e., examine every window).
-%
-%   EXAMPLE:
-%     isChar = SpongeBodetection_SPONGEBOB('test.jpg', 0.5);  % 50% of windows
+% detection_spongebob.m
+% Script que, donada una imatge de la serie spongebob, retorna si hi es o
+% no el personatge del spongebob (retorna isThereCharacter).
 
-%NOTA: per fer que vagi mes rapid. fer resize, tot mateixa mida
+% Algoritme: es basa en, iterar sobre un percentatge de totes les windows (o patches) 
+% de 128x128 de l'imatge. per cada patch, apliquem un trainedModel que ens diu
+% que el patch es del spongebob o no. Finalment, si a l'imatge trobem com a
+% minim un cert nombre de spongebob patches. retornem que si que hi es, en
+% cas contrari, diem que no.
 
-    if nargin < 2
-        sampleRate = 1;  % examine all windows by default
-    end
-    assert(sampleRate > 0 && sampleRate <= 1, 'sampleRate must be in (0,1].');
+% Parametres:
+% 1) sampleRate: indica el percentatge de windows o patches de 128x128 que
+% es tindran en compte (0 <= sampleRate <= 1)
+% 2) threshold: indica quants patches han de ser del spongebob com a minim
+% per tal que valorar que a la imatge SI hi ha un spongebob.
 
-    %% --- 1. Load the trained model ---
+function isThereCharacter = detection_spongebob(imageFile, sampleRate,threshold)
+    %% carraguem el trainedModel (que detecta si un patch de 128x128 es del spongebob)
     data = load('trainedModel_FineTree.mat');
     if ~isfield(data, 'trainedModel')
         error('The model file must contain a variable named ''trainedModel''.');
@@ -34,16 +25,16 @@ function isThereCharacter = SpongeBodetection_SPONGEBOB(imageFile, sampleRate,th
     varNames     = modelStruct.RequiredVariables;  % cell array of column names
     posClass     = "true";  % assume positive label is "true"
 
-    %% --- 2. Parameters (must match training) ---
+    %% parametres de les featuers (que son iguals que al training)
     windowSize = [128 128];   % [height, width]
     binCount   = 32;          % number of bins for HSV histograms
     step       = 16;          % sliding window stride
 
-    %% --- 3. Read image and get dimensions ---
+    %% read image
     I = imread(imageFile);
     [hI, wI, ~] = size(I);
 
-    %% --- 4. Sliding window with sampling ---
+    %% iterem sobre un percentatge de windows
     count = 0;
     for y = 1:step:(hI - windowSize(1))
         for x = 1:step:(wI - windowSize(2))
@@ -54,17 +45,17 @@ function isThereCharacter = SpongeBodetection_SPONGEBOB(imageFile, sampleRate,th
             rect  = [x, y, windowSize(2), windowSize(1)];
             patch = imcrop(I, rect);
 
-            % 4.1 Extract features for this patch
+            % obtenim featuers del patch actual
             featVec = extract_features_spongebob(patch, binCount, windowSize);
 
-            % 4.2 Build a one-row table with required column names
+            % construim la taula
             T = array2table(featVec, 'VariableNames', varNames);
 
-            % 4.3 Predict label and score
+            % fem la prediccio amb el model
             [label, score] = predictFcn(T);
             posScore = score(2);
 
-            % 4.4 If predicted label is positive, increment count
+            % si el model prediu que es bob esponja, augmentem contador
             if string(label) == posClass
                 count = count + 1;
             end
@@ -76,7 +67,7 @@ function isThereCharacter = SpongeBodetection_SPONGEBOB(imageFile, sampleRate,th
         end
     end
 
-    %% --- 5. Return result and print count ---
+    %% imprimim els resultats
     if count > 0 && count > threshold
         fprintf('SpongeBob found!  Number of spongebob windows found: %d\n', count);
         isThereCharacter = 1;
