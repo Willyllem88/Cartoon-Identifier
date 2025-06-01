@@ -1,4 +1,5 @@
 (Aquesta carpeta conte la part de deteccio de personatge. En particular es detecta, *Bob Esponja*)
+(Tambe comentem que cada script te una breu descripcio del que fa, per si ajuda a la comprensio de la practica)
 
 === Com executar? ===
 
