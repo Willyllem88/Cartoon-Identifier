@@ -1,4 +1,4 @@
-function isThereCharacter = SpongeBodetection_SPONGEBOB(imageFile, sampleRate,threshold,doResize)
+function isThereCharacter = SpongeBodetection_SPONGEBOB(imageFile, sampleRate,threshold)
 %SPONGEBODETECTION_SPONGEBOB  Slide a window over an input image and detect SpongeBob.
 %
 %   isThereCharacter = SpongeBodetection_SPONGEBOB(imageFile, sampleRate)
@@ -69,7 +69,7 @@ function isThereCharacter = SpongeBodetection_SPONGEBOB(imageFile, sampleRate,th
                 count = count + 1;
             end
             if count > 0 && count > threshold
-                fprintf('SpongeBob found!  Count: >%d (sampleRate = %.2f)\n', count, sampleRate);
+                fprintf('SpongeBob found!  Number of spongebob windows found: >%d\n', count);
                 isThereCharacter = 1;
                 return
             end
@@ -78,10 +78,10 @@ function isThereCharacter = SpongeBodetection_SPONGEBOB(imageFile, sampleRate,th
 
     %% --- 5. Return result and print count ---
     if count > 0 && count > threshold
-        fprintf('SpongeBob found!  Count: %d (sampleRate = %.2f)\n', count, sampleRate);
+        fprintf('SpongeBob found!  Number of spongebob windows found: %d\n', count);
         isThereCharacter = 1;
     else
-        fprintf('SpongeBob found not!  Count: %d (sampleRate = %.2f)\n', count, sampleRate);
+        fprintf('SpongeBob NOT found!  Number of spongebob windows found: %d\n', count);
         isThereCharacter = 0;
     end
 end

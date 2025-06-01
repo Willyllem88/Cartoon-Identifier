@@ -1,10 +1,14 @@
-[file, path] = uigetfile({'*.jpg;*.png','Images (*.jpg,*.png)'}, 'Selecciona una imagen');
-if isequal(file,0)
-    disp('No se seleccionó ningún archivo.');
-    return;
+fprintf('--- SpongeBob Detection Main Menu ---\n');
+fprintf('1) Test a single image\n');
+fprintf('2) Test a folder with positives and negatives\n');
+
+choice = input('Select an option (1 or 2): ');
+
+switch choice
+    case 1
+        test_image_spongebob();
+    case 2
+        test_folder_spongebob();
+    otherwise
+        disp('Invalid choice. Please run again and select 1 or 2.');
 end
-imageFile = fullfile(path, file);
-sampleRate = 0.1;
-threshold = 2;
-doResize = 0;
-result = detection_SPONGEBOB_withCount(imageFile,sampleRate,threshold, doResize); %returns true (1) or false (0)

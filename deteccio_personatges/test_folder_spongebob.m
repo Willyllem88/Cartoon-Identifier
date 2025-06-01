@@ -22,7 +22,8 @@ end
 
 threshold = 2;
 sampleRate = 0.15;
-doResize = 0;
+fprintf('Sample rate used to select windows (percentage of 128x128 windows tested): %d\n', sampleRate)
+fprintf('Minimum number of windows with spongebob occurance to tell if spongebob is: %d\n', threshold)
 
 %% --- Define positive and negative subfolders ---
 posFolder = fullfile(parentFolder, 'positives');
@@ -55,10 +56,11 @@ FP = 0;  % False Positives  (negative image, detected = 1)
 TN = 0;  % True Negatives   (negative image, detected = 0)
 
 %% --- Process positive images ---
+fprintf('=== Starting test of positives folder ===\n')
 for i = 1:numPos
     imageFile = fullfile(posFolder, posFiles(i).name);
     try
-        result = detection_SPONGEBOB_withCount(imageFile,sampleRate,threshold,doResize);  % should return 0 or 1
+        result = detection_SPONGEBOB_withCount(imageFile,sampleRate,threshold);  % should return 0 or 1
     catch ME
         warning('Error running detection on "%s": %s', posFiles(i).name, ME.message);
         continue;
@@ -71,10 +73,11 @@ for i = 1:numPos
 end
 
 %% --- Process negative images ---
+fprintf('=== Starting test of negatives folder ===\n')
 for i = 1:numNeg
     imageFile = fullfile(negFolder, negFiles(i).name);
     try
-        result = detection_SPONGEBOB_withCount(imageFile,sampleRate,threshold,doResize);
+        result = detection_SPONGEBOB_withCount(imageFile,sampleRate,threshold);
     catch ME
         warning('Error running detection on "%s": %s', negFiles(i).name, ME.message);
         continue;
