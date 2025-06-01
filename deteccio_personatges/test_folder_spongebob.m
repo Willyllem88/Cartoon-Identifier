@@ -60,7 +60,7 @@ fprintf('=== Starting test of positives folder ===\n')
 for i = 1:numPos
     imageFile = fullfile(posFolder, posFiles(i).name);
     try
-        result = detection_SPONGEBOB_withCount(imageFile,sampleRate,threshold);  % should return 0 or 1
+        result = detection_spongebob(imageFile,sampleRate,threshold);  % should return 0 or 1
     catch ME
         warning('Error running detection on "%s": %s', posFiles(i).name, ME.message);
         continue;
@@ -77,7 +77,7 @@ fprintf('=== Starting test of negatives folder ===\n')
 for i = 1:numNeg
     imageFile = fullfile(negFolder, negFiles(i).name);
     try
-        result = detection_SPONGEBOB_withCount(imageFile,sampleRate,threshold);
+        result = detection_spongebob(imageFile,sampleRate,threshold);
     catch ME
         warning('Error running detection on "%s": %s', negFiles(i).name, ME.message);
         continue;
