@@ -46,13 +46,3 @@ for i = 1:length(testdirs)
 end
 
 Ttest = struct2table(rows_test);
-
-%% Obtain model
-% Train a classifier using KNN with just 1 N
-mdl = fitcknn(T, 'Label', 'NumNeighbors', 1);
-
-% Predict labels for the entire test set
-predictedLabels = predict(mdl, Ttest);
-% Calculate accuracy
-accuracy = sum(predictedLabels == Ttest.Label) / height(Ttest);
-fprintf('Accuracy: %.2f%%\n', accuracy * 100);
