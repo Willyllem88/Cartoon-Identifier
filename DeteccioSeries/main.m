@@ -6,12 +6,13 @@ function main()
 
     switch opcio
         case 1
-            % Codi existent per imatge individual
             predirImatgeIndividual(seriesClassificationModel);
         case 2
             predirImatgesTest(seriesClassificationModel);
         case 3
             predirImatgesDirectori(seriesClassificationModel);
+        case 4
+            predirEstadistiquesDirectori(seriesClassificationModel);
         otherwise
             disp('Opció no vàlida.');
     end
@@ -22,6 +23,7 @@ function opcio = menuOpcions()
     disp('1. Classificar una imatge individual');
     disp('2. Classificar totes les imatges de test');
     disp('3. Classificar totes les imatges d''un directori');
+    disp('4. Estadístiques de classificació d''un directori');
     opcio = input('Opció: ');
 end
 
@@ -38,6 +40,8 @@ function predirImatgeIndividual(model)
     Tnew = struct2table(car);
 
     [yfit, ~] = model.predictFcn(Tnew);
+
+    disp(['S''ha predit que la imatge pertany: ', char(yfit)])
 
     % Pintar la imagen con una captio con el resultado de la prediccion
     figure;
@@ -121,5 +125,50 @@ function predirImatgesDirectori(model)
     end
 end
 
+function predirEstadistiquesDirectori(model)
+    disp('Selecciona un directori amb imatges per classificar.');
+    dirPath = uigetdir(".", "Selecciona un directori d'imatges");
 
+    if dirPath == 0
+        disp('No s''ha seleccionat cap directori.');
+        return;
+    end
 
+    exts = {'*.jpg', '*.jpeg', '*.png'};
+    files = [];
+    for k = 1:length(exts)
+        files = [files; dir(fullfile(dirPath, exts{k}))];
+    end
+
+    if isempty(files)
+        disp('No s''han trobat imatges en aquest directori.');
+        return;
+    end
+
+    % Inicialitzar comptadors per cada classe
+    classes = ["barrufets","bob-esponja","gat-i-gos","gumball","hora-de-aventuras","oliver-y-benji","padre-de-familia","pokemon","southpark","tom-y-jerry"];
+    counts = zeros(size(classes));
+
+    for i = 1:length(files)
+        imgPath = fullfile(files(i).folder, files(i).name);
+        I = imread(imgPath);
+
+        car = extreureCaracteristiques(I);
+        Tnew = struct2table(car);
+
+        [yfit, ~] = model.predictFcn(Tnew);
+
+        idx = find(classes == string(yfit));
+        if ~isempty(idx)
+            counts(idx) = counts(idx) + 1;
+        else
+            disp(['Classe desconeguda: ', char(yfit)]);
+        end
+    end
+
+    % Mostrar estadístiques
+    disp('Estadístiques de classificació:');
+    for i = 1:length(classes)
+        disp([char(classes(i)), ': ', num2str(counts(i))]);
+    end
+end
